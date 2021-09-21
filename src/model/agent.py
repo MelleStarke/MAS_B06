@@ -3,8 +3,8 @@ from typing import *
 from enum import Enum
 
 class MsgMode(Enum):
-  INFORM = 0
-  REQUEST = 1
+    INFORM = 0
+    REQUEST = 1
 
 Message = Tuple[MsgMode, str]
 
@@ -30,5 +30,6 @@ class KnowledgeAgent(S3Agent):
     def __init__(self, unique_id: int, model: Model):
         raise NotImplementedError
 
-class Pro
-
+class ProjectReleaseAgent(S3Agent):
+    def __init__(self, unique_id: int, model: Model):
+        raise NotImplementedError
