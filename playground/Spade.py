@@ -17,7 +17,9 @@ class SenderAgent(Agent):
             msg.set_metadata("performative", "inform")  # Set the "inform" FIPA performative
             msg.body = "Hello World"                    # Set the message content
 
-            await self.send(msg)
+            print(f"{self.agent.jid} sending a message")
+                await self.send(rmsg)
+                print(f"{self.agent.jid} sent a message")
             print("Message sent!")
 
             # stop agent from behaviour

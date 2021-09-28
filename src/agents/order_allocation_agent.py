@@ -27,48 +27,61 @@ class OAAgent(Agent):
 
         async def run(self):
             print(f"{self.agent.jid} waiting on a message")
-            msg = await self.receive(timeout=60)  # Wait to receive a message
-            print(f"{self.agent.jid} received a message")
+            msg = await self.receive(timeout=30)  # Wait to receive a message
+            
+            if msg is None:
+                print(f"{self.agent.jid} waiting timed out")
+                
+            else:
+                print(f"{self.agent.jid} received a message")
 
-            # Message from CA to start order allocation task
-            if ORDER_ALLOC_TEMP.match(msg):
-                # Request to KMA for supplier ranking results and product data
-                req = Message(sender=str(self.agent.jid),
-                              to=creds.kma[0],
-                              body="supplier ranking results, product data",
-                              metadata={"performative": "request"})
-
-                await self.send(req)
-
-            # Message from KMA with supplier ranking results and product data
-            if DATA_TEMP.match(msg):
-                # Bi-Objective model to allocate orders
-                model = None
-
-                req = Message(sender=str(self.agent.jid),
-                              to=creds.oa[0],
-                              body=str(model),
-                              metadata={"performative": "request-inform"})
-
-                await self.send(req)
-
-            # Message from OA with optimization results
-            if OPT_RESULTS_TEMP:
-                inf_CA = Message(sender=str(self.agent.jid),
-                                 to=creds.ca[0],
-                                 body=msg.body,
-                                 metadata={"performative": "inform",
-                                           "ontology": "optimized order allocation results"})
-
-                await self.send(inf_CA)
-
-                inf_KMA = Message(sender=str(self.agent.jid),
+                # Message from CA to start order allocation task
+                if ORDER_ALLOC_TEMP.match(msg):
+                    # Request to KMA for supplier ranking results and product data
+                    req = Message(sender=str(self.agent.jid),
                                   to=creds.kma[0],
-                                  body=msg.body,
-                                  metadata={"performative": "inform",
-                                            "ontology": "optimized order allocation results"})
+                                  body="supplier ranking results, product data",
+                                  metadata={"performative": "request"})
 
-                await self.send(inf_KMA)
+                    print(f"{self.agent.jid} sending a message")
+                    await self.send(req)
+                    print(f"{self.agent.jid} sent a message")
+
+                # Message from KMA with supplier ranking results and product data
+                if DATA_TEMP.match(msg):
+                    # Bi-Objective model to allocate orders
+                    model = None
+
+                    req = Message(sender=str(self.agent.jid),
+                                  to=creds.oa[0],
+                                  body=str(model),
+                                  metadata={"performative": "request-inform"})
+
+                    print(f"{self.agent.jid} sending a message")
+                    await self.send(req)
+                    print(f"{self.agent.jid} sent a message")
+
+                # Message from OA with optimization results
+                if OPT_RESULTS_TEMP:
+                    inf_CA = Message(sender=str(self.agent.jid),
+                                     to=creds.ca[0],
+                                     body=msg.body,
+                                     metadata={"performative": "inform",
+                                               "ontology": "optimized order allocation results"})
+
+                    await self.send(inf_CA)
+
+                    inf_KMA = Message(sender=str(self.agent.jid),
+                                      to=creds.kma[0],
+                                      body=msg.body,
+                                      metadata={"performative": "inform",
+                                                "ontology": "optimized order allocation results"})
+
+                    await self.send(inf_KMA)
+
+                else:
+                    print(f"{self.agent.jid} received a message that doesn't match a template from {msg.sender}")
+
 
     async def setup(self):
         b = self.OAAgentBehav()

@@ -33,51 +33,62 @@ class SSAgent(Agent):
 
         async def run(self):
             print(f"{self.agent.jid} waiting on a message")
-            msg = await self.receive(timeout=60)  # Wait to receive a message
-            print(f"{self.agent.jid} received a message")
+            msg = await self.receive(timeout=30)  # Wait to receive a message
 
-            if SS_REQ_TEMP.match(msg):
-                # Ask the Knowledge Agent for a list of suppliers
-                req = Message(sender=str(self.agent.jid),
-                              to=creds.kma[0],
-                              body="supplier names",
-                              metadata={"performative": "request"})
-
-                await self.send(req)
-
-            elif SUP_NAME_INF_TEMP.match(msg):
-                supplier_names = self.extract_supplier_names(msg.body)
-                self.agent.supplier_names = supplier_names
-
-                for supplier in supplier_names:
+            if msg is None:
+                print(f"{self.agent.jid} waiting timed out")
+                
+            else:
+                print(f"{self.agent.jid} received a message")
+                if SS_REQ_TEMP.match(msg):
+                    # Ask the Knowledge Agent for a list of suppliers
                     req = Message(sender=str(self.agent.jid),
-                                  to=supplier,
-                                  body="give me your info")
+                                  to=creds.kma[0],
+                                  body="supplier names",
+                                  metadata={"performative": "request"})
 
+                    print(f"{self.agent.jid} sending a message")
                     await self.send(req)
+                    print(f"{self.agent.jid} sent a message")
 
-            elif SUP_INFO_TEMP.match(msg):
-                info = self.extract_supplier_info()
-                if info[
-                    0] in self.agent.supplier_names:  # If the supplier name of the info is in the list of known supplier names
-                    self.agent.supplier_info.append(info)
+                elif SUP_NAME_INF_TEMP.match(msg):
+                    supplier_names = self.extract_supplier_names(msg.body)
+                    self.agent.supplier_names = supplier_names
 
-                if len(self.agent.supplier_names) is len(self.agent.supplier_info):
-                    # Send the rankings
-                    resp_KMA = Message(sender=str(self.agent.jid),
-                                       to=creds.kma[0],
-                                       body=str(self.agent.supplier_info),
-                                       metadata={"performative": "inform",
-                                                 "ontology": "supplier rankings"})
+                    for supplier in supplier_names:
+                        req = Message(sender=str(self.agent.jid),
+                                      to=supplier,
+                                      body="give me your info")
 
-                    await self.send(resp_KMA)
+                        print(f"{self.agent.jid} sending a message")
+                        await self.send(req)
+                        print(f"{self.agent.jid} sent a message")
 
-                    resp_CA = Message(sender=str(self.agent.jid),
-                                      to=creds.ca[0],
-                                      body="supplier selection done",
-                                      metadata={"performative": "inform"})
+                elif SUP_INFO_TEMP.match(msg):
+                    info = self.extract_supplier_info()
+                    if info in self.agent.supplier_names:  # If the supplier name of the info is in the list of known supplier names
+                        self.agent.supplier_info.append(info)
 
-                    await self.send(resp_CA)
+                    if len(self.agent.supplier_names) is len(self.agent.supplier_info):
+                        # Send the rankings
+                        resp_KMA = Message(sender=str(self.agent.jid),
+                                           to=creds.kma[0],
+                                           body=str(self.agent.supplier_info),
+                                           metadata={"performative": "inform",
+                                                     "ontology": "supplier rankings"})
+
+                        await self.send(resp_KMA)
+
+                        resp_CA = Message(sender=str(self.agent.jid),
+                                          to=creds.ca[0],
+                                          body="supplier selection done",
+                                          metadata={"performative": "inform"})
+
+                        await self.send(resp_CA)
+
+                else:
+                    print(f"{self.agent.jid} received a message that doesn't match a template from {msg.sender}")
+
 
         def extract_supplier_names(self, msg_body, ):
             """

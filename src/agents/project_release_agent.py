@@ -36,29 +36,40 @@ class PRAgent(Agent):
             print(f"initial message sent")
 
             print(f"{self.agent.jid} waiting on a message")
-            msg = await self.receive(timeout=60)  # Wait to receive a message
-            print(f"{self.agent.jid} received a message")
+            msg = await self.receive(timeout=30)  # Wait to receive a message
+            
+            if msg is None:
+                print(f"{self.agent.jid} waiting timed out")
+                
+            else:
+                print(f"{self.agent.jid} received a message")
 
-            if SS_INF_TEMP.match(msg):
-                inf = Message(sender=str(self.agent.jid),
-                              to=creds.ca[0],
-                              body="start order allocation",
-                              metadata={"performative": "request"})
+                if SS_INF_TEMP.match(msg):
+                    inf = Message(sender=str(self.agent.jid),
+                                  to=creds.ca[0],
+                                  body="start order allocation",
+                                  metadata={"performative": "request"})
 
-                await self.send(inf)
-                await self.agent.stop()
+                    print(f"{self.agent.jid} sending a message")
+                    await self.send(inf)
+                    print(f"{self.agent.jid} sent a message")
+                    await self.agent.stop()
 
-            elif OA_INF_TEMP.match(msg):
-                """
-                Request the Coordinator Agent to start the vehicle routing task
-                """
-                pass
+                elif OA_INF_TEMP.match(msg):
+                    """
+                    Request the Coordinator Agent to start the vehicle routing task
+                    """
+                    pass
 
-            elif VR_INF_TEMP.match(msg):
-                """
-                Inform the Coordinator Agent to stop all agents
-                """
-                pass
+                elif VR_INF_TEMP.match(msg):
+                    """
+                    Inform the Coordinator Agent to stop all agents
+                    """
+                    pass
+
+                else:
+                    print(f"{self.agent.jid} received a message that doesn't match a template from {msg.sender}")
+
         
     async def setup(self):
         b = self.PRAgentBehav()
