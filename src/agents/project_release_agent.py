@@ -1,11 +1,9 @@
-import time
 from spade.agent import Agent
-from spade.behaviour import CyclicBehaviour, OneShotBehaviour
+from spade.behaviour import OneShotBehaviour
 from spade.message import Message
 from spade.template import Template
 
-from . import agent_credentials as creds
-
+from .util import agent_credentials as creds
 
 # Template matching the inform of the supplier selection task being completed
 SS_INF_TEMP = Template(sender=str(creds.ca[0]),
@@ -20,8 +18,14 @@ VR_INF_TEMP = Template()
 
 
 class PRAgent(Agent):
+    """
+    Project Release Agent
+    """
 
     class PRAgentBehav(OneShotBehaviour):
+        """
+        Behaviour of the Project Release Agent
+        """
         
         async def on_start(self):
             print(f"{self.agent.jid} started")
@@ -38,30 +42,31 @@ class PRAgent(Agent):
             print(f"{self.agent.jid} waiting on a message")
             msg = await self.receive(timeout=30)  # Wait to receive a message
             
+            # If no message has been received after the timeout, the message is None
             if msg is None:
                 print(f"{self.agent.jid} waiting timed out")
                 
             else:
                 print(f"{self.agent.jid} received a message")
-
-                if SS_INF_TEMP.match(msg):
+                
+                # Pseudo switch statement for the evaluation of the message. Checks message templates for a match.
+                if SS_INF_TEMP.match(msg):  # Template for the supplier selection completion message.
                     inf = Message(sender=str(self.agent.jid),
                                   to=creds.ca[0],
                                   body="start order allocation",
                                   metadata={"performative": "request"})
 
-                    print(f"{self.agent.jid} sending a message")
                     await self.send(inf)
                     print(f"{self.agent.jid} sent a message")
                     await self.agent.stop()
 
-                elif OA_INF_TEMP.match(msg):
+                elif OA_INF_TEMP.match(msg):  # Template for the order allocation completion message.
                     """
                     Request the Coordinator Agent to start the vehicle routing task
                     """
                     pass
 
-                elif VR_INF_TEMP.match(msg):
+                elif VR_INF_TEMP.match(msg):  # Template for the vehicle routing completion message.
                     """
                     Inform the Coordinator Agent to stop all agents
                     """

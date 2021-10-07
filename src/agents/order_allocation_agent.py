@@ -1,10 +1,9 @@
-import time
 from spade.agent import Agent
-from spade.behaviour import CyclicBehaviour, OneShotBehaviour
+from spade.behaviour import CyclicBehaviour
 from spade.message import Message
 from spade.template import Template
 
-from . import agent_credentials as creds
+from .util import agent_credentials as creds
 
 # Template for an Order Allocation Task request from CA
 ORDER_ALLOC_TEMP = Template(sender=str(creds.ca[0]),
@@ -20,7 +19,14 @@ OPT_RESULTS_TEMP = Template(sender=str(creds.oa[0]),
 
 
 class OAAgent(Agent):
+    """
+    Order Allocation Agent.
+    """
+
     class OAAgentBehav(CyclicBehaviour):
+        """
+        Behaviour for the Order Allocation Agent.
+        """
 
         async def on_start(self):
             print(f"{self.agent.jid} started")
@@ -29,25 +35,24 @@ class OAAgent(Agent):
             print(f"{self.agent.jid} waiting on a message")
             msg = await self.receive(timeout=30)  # Wait to receive a message
             
+            # If no message has been received after the timeout, the message is None
             if msg is None:
                 print(f"{self.agent.jid} waiting timed out")
                 
             else:
                 print(f"{self.agent.jid} received a message")
-
-                # Message from CA to start order allocation task
-                if ORDER_ALLOC_TEMP.match(msg):
+                
+                # Pseudo switch statement for the evaluation of the message. Checks message templates for a match.
+                if ORDER_ALLOC_TEMP.match(msg):  # Template for the order allocation start request.
                     # Request to KMA for supplier ranking results and product data
                     req = Message(sender=str(self.agent.jid),
                                   to=creds.kma[0],
                                   body="supplier ranking results, product data",
                                   metadata={"performative": "request"})
 
-                    print(f"{self.agent.jid} sending a message")
                     await self.send(req)
                     print(f"{self.agent.jid} sent a message")
 
-                # Message from KMA with supplier ranking results and product data
                 if DATA_TEMP.match(msg):
                     # Bi-Objective model to allocate orders
                     model = None
@@ -57,12 +62,10 @@ class OAAgent(Agent):
                                   body=str(model),
                                   metadata={"performative": "request-inform"})
 
-                    print(f"{self.agent.jid} sending a message")
                     await self.send(req)
                     print(f"{self.agent.jid} sent a message")
 
-                # Message from OA with optimization results
-                if OPT_RESULTS_TEMP:
+                if OPT_RESULTS_TEMP:  # Template for the optimization results message.
                     inf_CA = Message(sender=str(self.agent.jid),
                                      to=creds.ca[0],
                                      body=msg.body,
