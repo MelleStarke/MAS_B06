@@ -6,8 +6,8 @@ This project serves as an implementation of the framework proposed by Maria Drak
 
 ## Versions
 
-This project was written on Linux using Python 3.8. Which is probably the only operating system it runs on.
-The agents were implemented via the [SPADE](https://spade-mas.readthedocs.io/en/latest/readme.html) library, which uses [XMPP](https://xmpp.org/) to implement the [FIPA ACL](http://www.fipa.org/repository/aclspecs.html) Interaction Protocol.
+This project was written on Linux using Python 3.8. Which is probably the only operating system it runs on. 
+The agents were implemented via the [SPADE](https://spade-mas.readthedocs.io/en/latest/readme.html) library, which uses [XMPP](https://xmpp.org/) to implement the [FIPA ACL](http://www.fipa.org/repository/aclspecs.html) Interaction Protocol. Note that older versions of Ubuntu (such as 16) may not be able to install SPADE.
 
 SPADE can be installed by running
 
@@ -21,11 +21,11 @@ in the terminal.
 
 ## Preliminary Test
 
-A preliminary test file can be found in `/src/simulations`. Despite there still being some run time errors related to concurrency, it serves as a minimal example of how the code runs.
+A preliminary test file can be found in `/src/simulations`. The code returns an error at the point that the order allocation task starts, but this is only because it hasn't been implemented yet. Though the supplier selection process _has_ been implemented.
 
 Due to relative imports, running the file can be a bit tricky. Opening the project in PyCharm and setting the configuration in the root folder (meaning the root folder of the GitHub project) should work.
 
-Otherwise you can simply run
+Otherwise you can try running
 
 ```
 python -m src.simulations.test
