@@ -15,6 +15,7 @@ SUP_RANK_INF_TEMP = Template(sender=str(creds.ssa[0]),
                              metadata={"performative": "inform",
                                        "ontology": "supplier rankings"})
 
+# Template matching the request for product data
 
 class KMAgent(Agent):
     """
@@ -29,8 +30,15 @@ class KMAgent(Agent):
         def __init__(self):
             super().__init__()
             self.supplier_ranking = None  # init
-            self.supplier_names = f"{{{creds.sa1[0]}, {creds.sa2[0]}, {creds.sa3[0]}, {creds.sa4[0]}, {creds.sa5[0]}," \
-                                  f"{creds.sa6[0]}, {creds.sa7[0]}, {creds.sa8[0]}, {creds.sa9[0]}, {creds.sa10[0]}}}"  # init supplier names with their IDs in .json string format
+
+            self.purchase_price = [[20, 45, 32, 25], [30, 35, 23, 33], [20, 44, 30, 21]]
+            self.holding_costs = [[10, 20, 17, 12], [8, 9, 12, 20], [7, 9, 12, 5]]
+            self.order_costs = [[1,1,1,1], [1,1,1,1], [1,1,1,1]]
+            self.available_inventory = [[30, 30, 30, 30], [20, 20, 20, 20], [25, 25, 25, 25]]
+            
+            self.supplier_info = [self.purchase_price, self.holding_costs, self.order_costs, self.available_inventory]
+
+            self.supplier_names = f"{{{creds.sa1[0]}, {creds.sa2[0]}, {creds.sa3[0]}, {creds.sa4[0]}}}"  # init supplier names with their IDs in .json string format
 
         async def on_start(self):
             print(f"{self.agent.jid} started")
@@ -69,6 +77,10 @@ class KMAgent(Agent):
 
                 else:
                     print(f"{self.agent.jid} received a message that doesn't match a template from {msg.sender}")
+                    
+        async def on_end(self):
+            print(f"{self.agent.jid} is stopping")
+            await self.agent.stop()
 
     async def setup(self):
         b = self.KMAgentBehav()

@@ -21,13 +21,23 @@ OA_REQ_TEMP = Template(sender=str(creds.pra[0]),
                        metadata={'performative': 'request'})
 
 # Template matching the inform of the order allocation task being completed
-OA_INF_TEMP = Template()
+OA_INF_TEMP = Template(sender=str(creds.oaa[0],
+                        body="order allocation done",
+                        metadata={"performative": "inform"}))
 
 # Template matching the request to execute the vehicle routing task
-VR_REQ_TEMP = Template()
-
+VR_REQ_TEMP = Template(sender=str(creds.pra[0]),
+                       body="start vehicle routing selection",
+                       metadata={"performative": "request"})
 # Template matching the inform of the vehicle routing task being completed
-VR_INF_TEMP = Template()
+VR_INF_TEMP = Template(sender=str(creds.vra[0]),
+                       body="vehicle routing done",
+                       metadata={"performative": "inform"})
+
+# Template matching the kill order by the PRA
+KILL_ORDER_TEMP = Template(sender=str(creds.pra[0]),
+                           body="stop running",
+                           metadata={"performative": "propagate"})
 
 
 class CAgent(Agent):
@@ -62,7 +72,7 @@ class CAgent(Agent):
                     await self.send(req)
                     print(f"{self.agent.jid} sent a message")
 
-                elif SS_INF_TEMP.match(msg):  # Template for the supplier selectino completion message.
+                elif SS_INF_TEMP.match(msg):  # Template for the supplier selection completion message.
                     inf = Message(sender=str(self.agent.jid),
                                   to=creds.pra[0],
                                   body="supplier selection done",
@@ -72,31 +82,57 @@ class CAgent(Agent):
                     print(f"{self.agent.jid} sent a message")
 
                 elif OA_REQ_TEMP.match(msg):  # Template for the order allocation start request.
-                    """
-                    Request the Order Allocation Agent to start the order allocation process
-                    """
+                    print(f"OAA req")
+                    req = Message(sender=str(self.agent.jid),
+                                  to=creds.oaa[0],
+                                  body="start order allocation",
+                                  metadata={"performative": "request"})
+                    print("passing along")
+                    await self.send(req)
+                    print(f"{self.agent.jid} sent a message")
                     pass
 
                 elif OA_INF_TEMP.match(msg):  # Template for the  order allocation completion message.
-                    """
-                    Inform the Project Release Agent that the order allocation process is done
-                    """
+                    inf = Message(sender=str(self.agent.jid),
+                                  to=creds.pra[0],
+                                  body="supplier selection done",
+                                  metadata={"performative": "inform"})
+
+                    await self.send(inf)
+                    print(f"{self.agent.jid} sent a message")
                     pass
 
                 elif VR_REQ_TEMP.match(msg):  # Template for the vehicle routing start request.
-                    """
-                    Request the Vehicle Routing Agent to start the vehicle routing process
-                    """
+                    print(f"VRA req")
+                    req = Message(sender=str(self.agent.jid),
+                                  to=creds.vra[0],
+                                  body="start vehicle routing selection",
+                                  metadata={"performative": "request"})
+                    print("passing along")
+                    await self.send(req)
+                    print(f"{self.agent.jid} sent a message")
+                    pass
                     pass
 
                 elif VR_INF_TEMP.match(msg):  # Template for the vehicle routing completion message.
-                    """
-                    Inform the Project Release Agent that the vehicle routing process is done
-                    """
+                     inf = Message(sender=str(self.agent.jid),
+                                  to=creds.pra[0],
+                                  body="vehicle routing done",
+                                  metadata={"performative": "inform"})
+
+                    await self.send(inf)
+                    print(f"{self.agent.jid} sent a message")
                     pass
+                
+                elif KILL_ORDER_TEMP.match(msg):
+                    self.kill()
 
                 else:
                     print(f"{self.agent.jid} received a message that doesn't match a template from {msg.sender}")
+                    
+        async def on_end(self):
+            print(f"{self.agent.jid} is stopping")
+            await self.agent.stop()
 
 
     async def setup(self):

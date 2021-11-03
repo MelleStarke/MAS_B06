@@ -2,6 +2,7 @@ from spade.agent import Agent
 from spade.behaviour import CyclicBehaviour
 from spade.message import Message
 from spade.template import Template
+import json
 
 from .util import agent_credentials as creds
 
@@ -55,7 +56,10 @@ class OAAgent(Agent):
 
                 if DATA_TEMP.match(msg):
                     # Bi-Objective model to allocate orders
-                    model = None
+                    def tcp(purchase_price, holding_cost, ordering_cost, quantity, available_inventory, order_placed):
+                        return (purchase_price * quantity) + (holding_cost * available_inventory) + (ordering_cost * order_placed)
+                    
+                    self.supplier_info = json.loads(msg.body.replace("'", '"'))
 
                     req = Message(sender=str(self.agent.jid),
                                   to=creds.oa[0],
@@ -84,6 +88,46 @@ class OAAgent(Agent):
 
                 else:
                     print(f"{self.agent.jid} received a message that doesn't match a template from {msg.sender}")
+                    
+                    
+            def optimize(goal: str):
+            """
+            Optimized eiher the TCP or TSV
+            goal: "TCP" or "TSV"
+            """
+            
+            D = None
+            
+            Ns = None
+            Np = None 
+            
+            X0 = None  # Order matrix, assume m x n. Initialize arbitrarily, say every value is
+            N = None  # nr. of parameters, i.e. nr of cells in X
+            max_prod_amount = None  # Maximum quantity of products. e.g. if ordering 5 marbles and 7 raisings then max_order_amount is 7
+            
+            def tcp(X, P):
+                X = np.round(X)
+                
+                if 
+            
+            def tsv():
+                pass
+            
+            if goal == "TCP":
+                fun = tcp
+            elif goal == "TSV":
+                fun = tsv
+            else:
+                raise ValueError("goal must be either TCP or TSV)
+            
+            bounds = opt.Bounds(np.zeroes(N), np.ones(N) * max_prod_amount)
+            res = opt.minimize(fun, X0, args = (None))
+            best_order = res.x.reshape(None, None)
+            return best_order
+            
+        async def on_end(self):
+            print(f"{self.agent.jid} is stopping")
+            await self.agent.stop()
 
 
     async def setup(self):

@@ -58,13 +58,21 @@ class PRAgent(Agent):
 
                     await self.send(inf)
                     print(f"{self.agent.jid} sent a message")
-                    await self.agent.stop()
 
                 elif OA_INF_TEMP.match(msg):  # Template for the order allocation completion message.
                     """
-                    Request the Coordinator Agent to start the vehicle routing task
+                    Request the Coordinator Agent to start the vehicle routing task.
+                    For now, it sends the kill order to the CA, which recursively sends it along the communication chain.
                     """
-                    pass
+                    order = Message(sender=str(self.agent.jid),
+                                    to=creds.ca[0],
+                                    body="stop running",
+                                    metadata={"performative": "propagate"})
+                    
+                    await self.send(order)
+                    print(f"{self.agent.jid} sent the kill command")
+                    self.kill()
+                    
 
                 elif VR_INF_TEMP.match(msg):  # Template for the vehicle routing completion message.
                     """
@@ -74,6 +82,10 @@ class PRAgent(Agent):
 
                 else:
                     print(f"{self.agent.jid} received a message that doesn't match a template from {msg.sender}")
+                    
+        async def on_end(self):
+            print(f"{self.agent.jid} is stopping")
+            await self.agent.stop()
 
         
     async def setup(self):

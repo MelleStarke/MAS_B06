@@ -22,3 +22,6 @@ sa10     = ("masb6-sa10@01337.io", "sa10-pass")
 
 va1      = ("masb6-va1@01337.io", "va1-pass")
 va2      = ("masb6-va1@01337.io", "va2-pass")
+"""
+{"masb6-sa3@01337.io": 3, "masb6-sa1@01337.io": 1, "masb6-sa4@01337.io": 4, "masb6-sa2@01337.io": 2}
+"""

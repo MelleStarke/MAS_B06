@@ -32,6 +32,10 @@ class OAgent(Agent):
                 respond with the optimized result
             """
             raise NotImplementedError
+                    
+        async def on_end(self):
+            print(f"{self.agent.jid} is stopping")
+            await self.agent.stop()
         
     async def setup(self):
         b = self.OABehav()

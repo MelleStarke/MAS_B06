@@ -40,6 +40,10 @@ class VAgent(Agent):
 
                 else:
                     print(f"{self.agent.jid} received a message that doesn't match a template from {msg.sender}")
+                    
+        async def on_end(self):
+            print(f"{self.agent.jid} is stopping")
+            await self.agent.stop()
 
     
         

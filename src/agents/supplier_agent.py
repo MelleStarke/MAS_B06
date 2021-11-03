@@ -5,6 +5,7 @@ from spade.template import Template
 
 from .util import agent_credentials as creds
 
+# Template matching the supplier
 INFO_REQ_TEMP = Template(sender=str(creds.ssa[0]),
                          body="give me your info",
                          metadata={"performative": "request"})
@@ -50,6 +51,10 @@ class SAgent(Agent):
 
                 else:
                     print(f"{self.agent.jid} received a message that doesn't match a template from {msg.sender}:\n\t{msg}")
+                    
+        async def on_end(self):
+            print(f"{self.agent.jid} is stopping")
+            await self.agent.stop()
 
 # https://www.tutorialspoint.com/How-to-convert-a-string-to-dictionary-in-Python
     
