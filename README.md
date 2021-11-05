@@ -19,16 +19,18 @@ in the terminal.
 
 
 
-## Preliminary Test
+## Simulation
 
-A preliminary test file can be found in `/src/simulations`. The code returns an error at the point that the order allocation task starts, but this is only because it hasn't been implemented yet. Though the supplier selection process _has_ been implemented.
+A simulation file can be found in `/src/simulations` as `cost_sus_experiment.py`.
 
 Due to relative imports, running the file can be a bit tricky. Opening the project in PyCharm and setting the configuration in the root folder (meaning the root folder of the GitHub project) should work.
+Do be sure to check the "Run with Python console", "Add content roots to PYTHONPATH", and "Add source roots to PYTHONPATH" in the configuration just to be sure.
+If the code doesn't work due to import errors, please contact me.
 
 Otherwise you can try running
 
 ```
-python -m src.simulations.test
+python -m src.simulations.cost_sus_experiment
 ```
 
 in a terminal opened in the root folder. Assuming Python 3.8 is in the PATH.

@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 
 def perform_TOPSIS(df, supplier_names):
     score = []
@@ -7,7 +8,7 @@ def perform_TOPSIS(df, supplier_names):
 
     # Hard-coded weights and impact for now.
     # weights = [0.2125, 0.1802, 0.0868, 0.1048, 0.0462, 0.0745, 0.0389, 0.0722, 0.0518, 0.0411, 0.0562, 0.035]
-    a = pd.read_csv("q.csv", index_col="Unnamed: 0")
+    a = pd.read_csv("../agents/util/q.csv", index_col="Unnamed: 0")
     impact = ['pos', 'pos', 'pos', 'pos', 'pos', 'pos', 'pos', 'pos', 'neg', 'neg', 'pos', 'pos']
 
     # Now we Calculate the Normalized Matrix and weighted Normalize matrix
@@ -110,8 +111,7 @@ def order_perms(D, Ns):
     div_perms: list of div_perms result for all products.
     ans: result of the function.
     """
-    
-    print(f"len div perms: {len(div_perms)}")    
+
     if len(div_perms) == 0:
       return ans
     
@@ -134,6 +134,7 @@ def order_perms(D, Ns):
     
     
   div_ps = [div_perms(d, Ns) for d in D]
+
   return(comb_perms(div_ps))
 
 

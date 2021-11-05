@@ -47,7 +47,7 @@ class SAgent(Agent):
                                    metadata={"performative": "inform",
                                              "ontology": "supplier info"})
                     await self.send(resp)
-                    print(f"{self.agent.jid} sent a message")
+                    print(f"{self.agent.jid} sent a message to {resp.to}")
 
                 else:
                     print(f"{self.agent.jid} received a message that doesn't match a template from {msg.sender}:\n\t{msg}")

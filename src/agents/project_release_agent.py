@@ -22,6 +22,12 @@ class PRAgent(Agent):
     Project Release Agent
     """
 
+    def __init__(self, jid, password, demand, n_suppliers, alphas):
+        super().__init__(jid, password)
+        self.demand = demand
+        self.n_suppliers = n_suppliers
+        self.alphas = alphas
+
     class PRAgentBehav(OneShotBehaviour):
         """
         Behaviour of the Project Release Agent
@@ -32,9 +38,9 @@ class PRAgent(Agent):
 
         async def run(self):
             init = Message(sender=str(self.agent.jid),
-                          to=creds.ca[0],
-                          body="start supplier selection",
-                          metadata={"performative": "request"})
+                           to=creds.ca[0],
+                           body="start supplier selection",
+                           metadata={"performative": "request"})
 
             await self.send(init)
             print(f"initial message sent")
@@ -51,27 +57,33 @@ class PRAgent(Agent):
                 
                 # Pseudo switch statement for the evaluation of the message. Checks message templates for a match.
                 if SS_INF_TEMP.match(msg):  # Template for the supplier selection completion message.
+                    # Order to be optimized
+                    order = {"demand": self.agent.demand,
+                             "alphas": self.agent.alphas}
+
                     inf = Message(sender=str(self.agent.jid),
                                   to=creds.ca[0],
-                                  body="start order allocation",
-                                  metadata={"performative": "request"})
+                                  body=str(order),
+                                  metadata={"performative": "request",
+                                            "ontology": "order allocation start request"})
 
                     await self.send(inf)
-                    print(f"{self.agent.jid} sent a message")
+                    print(f"{self.agent.jid} sent a message to {inf.to}")
 
                 elif OA_INF_TEMP.match(msg):  # Template for the order allocation completion message.
                     """
                     Request the Coordinator Agent to start the vehicle routing task.
-                    For now, it sends the kill order to the CA, which recursively sends it along the communication chain.
+                    For now, it's just an empty block.
                     """
-                    order = Message(sender=str(self.agent.jid),
-                                    to=creds.ca[0],
-                                    body="stop running",
-                                    metadata={"performative": "propagate"})
-                    
-                    await self.send(order)
-                    print(f"{self.agent.jid} sent the kill command")
-                    self.kill()
+                    # order = Message(sender=str(self.agent.jid),
+                    #                 to=creds.ca[0],
+                    #                 body="stop running",
+                    #                 metadata={"performative": "propagate"})
+                    #
+                    # await self.send(order)
+                    # print(f"{self.agent.jid} sent the kill command")
+                    # self.kill()
+                    pass
                     
 
                 elif VR_INF_TEMP.match(msg):  # Template for the vehicle routing completion message.
@@ -90,5 +102,5 @@ class PRAgent(Agent):
         
     async def setup(self):
         b = self.PRAgentBehav()
-        self.add_behaviour(b, template=(SS_INF_TEMP | OA_INF_TEMP | VR_INF_TEMP))
+        self.add_behaviour(b)
         b.set_agent(self)

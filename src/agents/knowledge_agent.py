@@ -1,3 +1,5 @@
+import json
+
 from spade.agent import Agent
 from spade.behaviour import CyclicBehaviour
 from spade.message import Message
@@ -15,7 +17,10 @@ SUP_RANK_INF_TEMP = Template(sender=str(creds.ssa[0]),
                              metadata={"performative": "inform",
                                        "ontology": "supplier rankings"})
 
-# Template matching the request for product data
+# Template matching the request for product data and supplier rankings
+SUP_INFO_INF_TEMP = Template(sender=str(creds.oaa[0]),
+                             body="product data and supplier rankings",
+                             metadata={"performative": "request"})
 
 class KMAgent(Agent):
     """
@@ -31,12 +36,7 @@ class KMAgent(Agent):
             super().__init__()
             self.supplier_ranking = None  # init
 
-            self.purchase_price = [[20, 45, 32, 25], [30, 35, 23, 33], [20, 44, 30, 21]]
-            self.holding_costs = [[10, 20, 17, 12], [8, 9, 12, 20], [7, 9, 12, 5]]
-            self.order_costs = [[1,1,1,1], [1,1,1,1], [1,1,1,1]]
-            self.available_inventory = [[30, 30, 30, 30], [20, 20, 20, 20], [25, 25, 25, 25]]
-            
-            self.supplier_info = [self.purchase_price, self.holding_costs, self.order_costs, self.available_inventory]
+            self.purchase_prices = [[30, 60, 25, 50]]
 
             self.supplier_names = f"{{{creds.sa1[0]}, {creds.sa2[0]}, {creds.sa3[0]}, {creds.sa4[0]}}}"  # init supplier names with their IDs in .json string format
 
@@ -63,11 +63,11 @@ class KMAgent(Agent):
                                              "ontology": "supplier names"})
 
                     await self.send(resp)
-                    print(f"{self.agent.jid} sent a message")  # Send message
+                    print(f"{self.agent.jid} sent a message to {resp.to}")  # Send message
 
                 elif SUP_RANK_INF_TEMP.match(msg):  # Template for the supplier rank information message.
-                    self.supplier_ranking = msg.body  # Set the ranking to be the message body.
-                    print(f"Received rankings: {msg.body}")
+                    self.supplier_ranking = json.loads(msg.body.replace("'", '"'))["rankings"]  # Set the ranking to be the message body.
+
                     notif = Message(sender=str(self.agent.jid),
                                     to=creds.ssa[0],  # Construct a message informing that the ranking has been stored.
                                     body="stored supplier rankings",
@@ -75,8 +75,21 @@ class KMAgent(Agent):
 
                     await self.send(notif)  # Send message
 
+                elif SUP_INFO_INF_TEMP.match(msg):
+                    supplier_info = {"ranking": self.supplier_ranking,
+                                     "purchase prices": self.purchase_prices}
+
+                    resp = Message(sender=str(self.agent.jid),
+                                   to=str(msg.sender),  # Construct message containing product data and supplier ranks
+                                   body=str(supplier_info),
+                                   metadata={"performative": "inform",
+                                             "ontology": "product data and supplier rankings"})
+
+                    await self.send(resp)
+                    print(f"{self.agent.jid} sent a message to {resp.to}")  # Send message
+
                 else:
-                    print(f"{self.agent.jid} received a message that doesn't match a template from {msg.sender}")
+                    print(f"{self.agent.jid} received a message that doesn't match a template from {msg.sender}:\n{msg}")
                     
         async def on_end(self):
             print(f"{self.agent.jid} is stopping")

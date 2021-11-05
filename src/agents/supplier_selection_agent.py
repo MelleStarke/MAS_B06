@@ -5,10 +5,8 @@ from spade.message import Message
 from spade.template import Template
 import pandas as pd
 import json
-import scipy.optimize as opt
 # import numpy as np
 from re import subn
-from math import rounded
 
 from .util import agent_credentials as creds
 from .util import mathstuffs
@@ -66,7 +64,7 @@ class SSAgent(Agent):
                                   metadata={"performative": "request"})
 
                     await self.send(req)
-                    print(f"{self.agent.jid} sent a message")
+                    print(f"{self.agent.jid} sent a message to {req.to}")
 
                 elif SUP_NAME_INF_TEMP.match(msg):  # Template for the supplier name message from KMA
                     supplier_names = self.extract_supplier_names(msg.body)
@@ -81,7 +79,7 @@ class SSAgent(Agent):
                                       metadata={"performative": "request"})
 
                         await self.send(req)
-                        print(f"{self.agent.jid} sent a message")
+                        print(f"{self.agent.jid} sent a message to {req.to}")
 
                 elif SUP_INFO_TEMP.match(msg):  # Template for the supplier info messages from the suppliers themselves
                     info = self.extract_supplier_info(msg.body)
@@ -93,13 +91,17 @@ class SSAgent(Agent):
                     if all(map(lambda x: x is not None, self.agent.supplier_info)):
                         supplier_ranking = self.perform_TOPSIS()
 
+                        print(f"\n\tSSA finished Supplier Selection.\n\tRanking (ordered on supplier nrs.): "
+                              f"{supplier_ranking}\n")
+
                         resp_KMA = Message(sender=str(self.agent.jid),
                                            to=creds.kma[0],
-                                           body=str(supplier_ranking),
+                                           body=str({"rankings": supplier_ranking}),
                                            metadata={"performative": "inform",
                                                      "ontology": "supplier rankings"})
 
                         await self.send(resp_KMA)
+                        print(f"{self.agent.jid} sent a message to {resp_KMA.to}")
 
                         resp_CA = Message(sender=str(self.agent.jid),
                                           to=creds.ca[0],
@@ -107,6 +109,7 @@ class SSAgent(Agent):
                                           metadata={"performative": "inform"})
 
                         await self.send(resp_CA)
+                        print(f"{self.agent.jid} sent a message to {resp_CA.to}")
 
                 else:
 
